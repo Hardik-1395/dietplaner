@@ -40,17 +40,17 @@ def load_llm():
 
 CUSTOM_PROMPT_TEMPLATE = """
 You are a diet planning assistant specialized in pregnancy nutrition. Use the given context to create a customized daily diet plan for a pregnant mother.
+You are a trusted nutrition advisor specializing in pregnancy nutrition. Your goal is to provide accurate, safe, and guideline-compliant dietary recommendations for a pregnant mother, based strictly on official sources such as WHO, ICMR, and FSSAI guidelines.
 
-Below are the key inputs:
-Trimester: {trimester}
-Diet Type: {diet_type}
-Allergies: {allergies}
-Health Goals: {goals}
-Menu Type: {menu_type}
-Region: {region}
+Use ONLY the context provided below to generate your response. Do not make up any information. If the answer is not present in the context, respond with: "I'm sorry, I don't have that specific information in the official guidelines."
+
 
 Context:
 {context}
+----
+
+USER QUERY:
+{question}
 
 Instructions:
 - Use only the information from the context to generate the response.
@@ -82,13 +82,8 @@ def set_custom_prompt(custom_prompt_template):
     prompt = PromptTemplate(
         template=custom_prompt_template,
         input_variables=[
-            "context",
-            "trimester",
-            "diet_type",
-            "allergies",
-            "goals",
-            "menu_type",
-            "region"
+            "context","question"
+            
         ]
     )
     return prompt
@@ -126,7 +121,7 @@ region = input("Enter your region (e.g., South India, North India): ")
 user_query = input("Ask your question (e.g., Suggest a meal plan): ")
 
 # Build the input dictionary
-query_inputs = {
+user_inputs = {
     "query": user_query,   # Replace this with your loaded context from vector DB
     "trimester": trimester,
     "diet_type": diet_type,
@@ -135,8 +130,26 @@ query_inputs = {
     "menu_type": menu_type,
     "region": region
 }
-
-
+structured_query_template = PromptTemplate(
+    input_variables=[
+            "trimester",
+            "diet_type",
+            "allergies",
+            "goals",
+            "menu_type",
+            "region"
+    ],
+    template="""
+Generare a well structured meal plan for the pregnant mother using below key inputs:
+Trimester: {trimester}
+Diet Type: {diet_type}
+Allergies: {allergies}
+Health Goals: {goals}
+Menu Type: {menu_type}
+Region: {region}
+"""
+)
+query = structured_query_template.format(**user_inputs)
 
 # Now invoke the chain
 #response = qa_chain.invoke(query_inputs)
@@ -152,19 +165,25 @@ query_inputs = {
 
 # Retrieve documents manually (optional but gives you control)
 # Retrieve documents manually
-docs = db.similarity_search(query_inputs["query"], k=3)
+docs = db.similarity_search(user_inputs["query"], k=3)
+#query = structured_query_template.format(**user_input)
 if not docs:
     print("\nSorry, I could not find relevant dietary guidance for this request in the available documents.")
 else:
-    # Inject context and run using invoke
-    try:
-        result = qa_chain.combine_documents_chain.invoke({
-            "input_documents": docs,
-            **query_inputs
-        })
-        print("\nRESULT:\n", result)
-    except Exception as e:
-        print("❌ Error:", e)
+    # # Inject context and run using invoke
+    # try:
+    #     result = qa_chain.combine_documents_chain.invoke({
+    #         "input_documents": docs,
+    #         **query_inputs
+    #     })
+    #     print("\nRESULT:\n", result)
+    # except Exception as e:
+    #     print("❌ Error:", e)
 
-    
+    try:
+        response = qa_chain.invoke({ "query": query })
+        print("\n📘 FINAL RESPONSE:\n", response["result"])
+        print("\n🔗 SOURCES:\n", [doc.metadata for doc in response["source_documents"]])
+    except Exception as e:
+        print(f"❌ Error during query processing: {str(e)}")
 
