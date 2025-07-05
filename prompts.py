@@ -1,9 +1,10 @@
 from langchain_core.prompts import PromptTemplate
 # Externalized custom prompt definition
 CUSTOM_PROMPT_TEMPLATE = """
-You are a trusted nutrition advisor specializing in pregnancy nutrition. Your goal is to provide accurate, safe, and guideline-compliant dietary recommendations for pregnant women, strictly based on official sources such as WHO, ICMR, and FSSAI guidelines.
+Using ONLY the context provided, generate a structured meal plan covering Breakfast, Lunch, and Dinner that meets the user’s requirements exactly.
+- Include at least 5 food items per meal, or the number specified by the user.
+- Do NOT add any additional commentary or sections—return nothing but the meal plan.
 
-Use ONLY the context provided below to generate your response. Do not make up any information. If the answer is not present in the context, respond with: "I'm sorry, I don't have that specific information in the official guidelines."
 
 ---
 📘 CONTEXT:
@@ -14,11 +15,56 @@ Use ONLY the context provided below to generate your response. Do not make up an
 {question}
 
 💡 YOUR RESPONSE (Follow these rules strictly):
-- Always mention the appropriate trimester or stage of pregnancy if relevant.
-- Suggest foods, preparation methods, or nutrients only if they are explicitly mentioned in the context.
+Generate the meal plan below exactly strictly according to the above user requirements.
+MEAL PLAN FORMAT:
+
+Breakfast:
+- Food item 1: portion
+- Food item 2: portion
+- Food item 3: portion
+- Food item 4: portion
+- Food item 5: portion
+
+Lunch:
+- Food item 1: portion
+- Food item 2: portion
+- Food item 3: portion
+- Food item 4: portion
+- Food item 5: portion
+
+Dinner:
+- Food item 1: portion
+- Food item 2: portion
+- Food item 3: portion
+- Food item 4: portion
+- Food item 5: portion
+
+Example response:
+
+Breakfast:
+- Vegetable upma: 1 bowl
+- Poha with peas and peanuts: 1 plate
+- Ragi porridge: 1 bowl
+- Fruit salad: 1 cup
+- Almond milk: 1 glass
+
+Lunch:
+- Palak dal: 1 bowl
+- Brown rice: 1 cup
+- Mixed vegetable sabzi: 1 bowl
+- Whole wheat chapati: 2 rotis
+- Curd: 1 cup
+
+Dinner:
+- Moong dal khichdi: 1 plate
+- Stir-fried vegetables: 1 bowl
+- Chapati: 2 rotis
+- Lentil soup: 1 cup
+- Buttermilk: 1 glass
+
+
 - Highlight safety precautions such as foods to avoid or hygiene practices.
-- If applicable, cite the source like [WHO, 2021] or [ICMR, p.23].
-- Keep the tone caring, professional, and concise.
+
 
 """
 
@@ -46,11 +92,55 @@ Generate a personalized meal plan for a pregnant woman with the following charac
 - Personal preferences or dislikes: {preference}
 
 💡 YOUR RESPONSE (Strictly follow these rules):
-- Suggest foods, preparation methods, or nutrients only if they are explicitly mentioned in the context.
-- Highlight safety precautions such as foods to avoid, preparation hygiene, or any medical considerations if applicable.
-- Mention the stage of pregnancy if it affects dietary recommendations.
+Generate the meal plan below exactly strictly according to the above user requirements.
+MEAL PLAN FORMAT:
 
-- Keep the tone caring, professional, and concise.
+Breakfast:
+- Food item 1: portion
+- Food item 2: portion
+- Food item 3: portion
+- Food item 4: portion
+- Food item 5: portion
+
+Lunch:
+- Food item 1: portion
+- Food item 2: portion
+- Food item 3: portion
+- Food item 4: portion
+- Food item 5: portion
+
+Dinner:
+- Food item 1: portion
+- Food item 2: portion
+- Food item 3: portion
+- Food item 4: portion
+- Food item 5: portion
+
+Example response(Note-- below is the example of the repsonse you are expected to generate )
+
+Breakfast:
+- Vegetable upma: 1 bowl
+- Poha with peas and peanuts: 1 plate
+- Ragi porridge: 1 bowl
+- Fruit salad: 1 cup
+- Almond milk: 1 glass
+
+Lunch:
+- Palak dal: 1 bowl
+- Brown rice: 1 cup
+- Mixed vegetable sabzi: 1 bowl
+- Whole wheat chapati: 2 rotis
+- Curd: 1 cup
+
+Dinner:
+- Moong dal khichdi: 1 plate
+- Stir-fried vegetables: 1 bowl
+- Chapati: 2 rotis
+- Lentil soup: 1 cup
+- Buttermilk: 1 glass
+
+
+- Highlight safety precautions such as foods to avoid or hygiene practices.
 """
 )
 
@@ -58,12 +148,12 @@ Generate a personalized meal plan for a pregnant woman with the following charac
 user_input = {
     "pregnancy_month": "1",
     
-    "diet_type": "Vegetarian",
-    #"diet_notes": "ensure iron bioavailability with vitamin C",
+    "diet_type": "Non-Vegetarian  ",
+    
     "allergies": "None",
-    "nutrient_focus": "Vitamin A",
-    "foods_tolerated": "Sweet potato, oats",
+    "nutrient_focus": "calcium ",
+    #"foods_tolerated": "Sweet potato, oats",
     "medical_conditions": "None",
-    "cultural_preference": "Indian",
-    "preference": "meal should help in gaining wieght"
+    "cultural_preference": "south Indian",
+    "preference": "meal should help in reducing  wieght"
 }
