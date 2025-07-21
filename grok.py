@@ -14,7 +14,7 @@ from prompts import custom_prompt
 
 # === Load env (optional) ===
 load_dotenv()
-os.environ["GROQ_API_KEY"] = "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"  # or store this in a .env file
+
 
 # === Load FAISS Vector Store ===
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -29,16 +29,16 @@ db = FAISS.load_local(DB_FAISS_PATH, embedding_model, allow_dangerous_deserializ
 class GroqLLM(LLM):
     model: str = "meta-llama/llama-4-scout-17b-16e-instruct"
     temperature: float = 0.4
-    _client: Groq = PrivateAttr()  # ✅ This is how we define a private client field
+    _client: Groq = PrivateAttr()  # This is how we define a private client field
 
     def __init__(self, api_key: str, model_name: Optional[str] = None, temperature: float = 0.5):
         super().__init__()
-        self._client = Groq(api_key=api_key)  # ✅ Note the underscore: _client
+        self._client = Groq(api_key=api_key)  #  Note the underscore: _client
         self.model = model_name or self.model
         self.temperature = temperature
 
     def _call(self, prompt: str, stop: Optional[List[str]] = None) -> str:
-        completion = self._client.chat.completions.create(  # ✅ Use _client here
+        completion = self._client.chat.completions.create(  #  Use _client here
             model=self.model,
             messages=[{"role": "user", "content": prompt}],
             temperature=self.temperature,
