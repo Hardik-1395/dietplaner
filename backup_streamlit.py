@@ -90,6 +90,18 @@ st.markdown("""
     .stMultiSelect > div > div > div > div {
         color: #000000 !important;
     }
+    /* Red box styling for multi-select tags */
+    .stMultiSelect > div > div > div > div > div {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        #color: #ffffff !important;
+        border-radius: 5px !important;
+        padding: 0.2rem 0.5rem !important;
+        margin: 0.2rem !important;
+    }
+    /* Styling for the 'x' (remove) button within the tag */
+    .stMultiSelect > div > div > div > div > div > button {
+        color: #ffffff !important;
+    }
     /* Meal plan headings styling */
     h3 {
         font-size: 1.8rem !important;
@@ -102,13 +114,58 @@ st.markdown("""
     .stTextArea textarea {
         caret-color: #000000 !important;
     }
-    /* Intro text styling - just font size */
+    /* Styling for introduction text */
     .intro-text {
-        font-size: 1.2rem !important;
-        line-height: 1.6 !important;
-        margin-bottom: 1.5rem !important;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        padding: 1.5rem !important;
+        border-radius: 15px !important;
+        margin-bottom: 2rem !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+        border-left: 5px solid #ffd700 !important;
     }
-</style>
+    .intro-text h4 {
+        color: #ffffff !important;
+        font-size: 1.3rem !important;
+        font-weight: 600 !important;
+        margin-bottom: 0.8rem !important;
+        text-align: center !important;
+    }
+    .intro-text p {
+        color: #ffffff !important;
+        font-size: 1.1rem !important;
+        line-height: 1.6 !important;
+        margin: 0 !important;
+        text-align: center !important;
+    }
+    /* Increase font size for LLM response content */
+    # .meal-plan-content {
+    #     font-size: 1.2rem !important;
+    #     line-height: 1.6 !important;
+    #     color: #ffffff !important;
+    # }
+#     .meal-plan-content ul, .meal-plan-content ul, .meal-plan-content ol {
+#         font-size: 1.2rem !important;
+#         line-height: 1.6 !important;
+#         margin-bottom: 0.8rem !important;
+#     }
+#     /* Special styling for meal headings (Breakfast, Lunch, Dinner) */
+#     .meal-plan-content h3, .meal-plan-content h4, .meal-plan-content strong {
+#         color: #ffd700 !important;
+#         font-size: 1.4rem !important;
+#         font-weight: 700 !important;
+#         margin-top: 1rem !important;
+#         margin-bottom: 0.5rem !important;
+#         text-transform: uppercase !important;
+#         letter-spacing: 1px !important;
+#         border-bottom: 2px solid #ffd700 !important;
+#         padding-bottom: 0.3rem !important;
+#     }
+#     /* Fix for breakfast formatting - ensure proper line breaks */
+#     .meal-plan-content p {
+#         margin-bottom: 0.5rem !important;
+#         white-space: pre-line !important;
+#     }
+# </style>
 """, unsafe_allow_html=True)
 
 # Header
@@ -334,8 +391,9 @@ def main():
     else:
         st.markdown("""
         <div class="intro-text">
-        Eating well during pregnancy is one of the best ways to care for yourself and your baby.
-        This bot helps you create personalized meal plans based on your stage of pregnancy, preferences, and nutritional needs.
+            🤰 Welcome to Your Pregnancy Diet Planner
+            <p>Eating well during pregnancy is one of the best ways to care for yourself and your baby.<br>
+            This bot helps you <strong>create personalized meal plans</strong> based on your stage of pregnancy, preferences, and nutritional needs.</p>
         </div>
         
         ### 📖 How to Use
