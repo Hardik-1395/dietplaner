@@ -79,7 +79,7 @@ custom_prompt = PromptTemplate(
 structured_query_template = PromptTemplate(
     input_variables=[
         "pregnancy_month", "diet_type", "allergies",
-        "nutrient_focus", "cultural_preference" , "preference"
+        "nutrient_focus", "cultural_preference" , "preference","medical_conditions"
     ],
 
 template="""
@@ -90,6 +90,7 @@ Generate a personalized meal plan for a pregnant woman with the following charac
 - Key nutrient focus: {nutrient_focus}
 - Cultural preference: {cultural_preference}
 - Personal preferences or dislikes: {preference}
+- Medical conditions: {medical_conditions}
 
 💡 YOUR RESPONSE (Strictly follow these rules):
 Generate the meal plan below exactly strictly according to the above user requirements.

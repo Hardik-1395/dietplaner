@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 from groq import Groq
 from langchain_core.prompts import PromptTemplate
-from langchain.chains import RetrievalQA
+# from langchain.chains import RetrievalQA
 from langchain_community.vectorstores import FAISS
 from langchain.llms.base import LLM
 from pydantic import PrivateAttr
@@ -140,12 +140,20 @@ class GroqLLM(LLM):
         self.model = model_name or self.model
         self.temperature = temperature
 
-    def _call(self, prompt: str, stop: Optional[List[str]] = None) -> str:
+    def _call(self, prompt, stop: Optional[List[str]] = None) -> str:
+        if not isinstance(prompt, str):
+            if hasattr(prompt, "to_string"):
+                prompt = prompt.to_string()
+            elif isinstance(prompt, dict):
+                prompt = prompt.get("text") or prompt.get("input") or str(prompt)
+            else:
+                prompt = str(prompt)
+
         completion = self._client.chat.completions.create(
             model=self.model,
             messages=[{"role": "user", "content": prompt}],
             temperature=self.temperature,
-            max_tokens=5000,
+            max_tokens=800,
             top_p=1,
         )
         return completion.choices[0].message.content
@@ -161,39 +169,30 @@ class GroqLLM(LLM):
 @st.cache_resource
 def initialize_components():
     try:
-        # Load vector store
         db = load_vector_store()
         if db is None:
             return None, None
-        
-        # Initialize Groq LLM
+
         groq_api_key = os.getenv("GROQ_API_KEY")
         if not groq_api_key:
-            st.error("GROQ_API_KEY not found in environment variables")
+            st.error("GROQ_API_KEY not found")
             return None, None
-        
+
         llm = GroqLLM(api_key=groq_api_key)
-        
-        # Create QA chain
-        qa_chain = RetrievalQA.from_chain_type(
-            llm=llm,
-            chain_type="stuff",
-            retriever=db.as_retriever(search_kwargs={'k': 5}),
-            return_source_documents=True,
-            chain_type_kwargs={"prompt": custom_prompt, "document_variable_name": "context"}
-        )
-        
-        return qa_chain, db
+        retriever = db.as_retriever(search_kwargs={'k': 5})
+
+        return llm, retriever
+
     except Exception as e:
-        st.error(f"Error initializing components: {str(e)}")
+        st.error(f"Error initializing: {str(e)}")
         return None, None
 
 # Main UI
 def main():
     # Initialize components
-    qa_chain, db = initialize_components()
+    llm, retriever = initialize_components()
     
-    if qa_chain is None or db is None:
+    if llm is None or retriever is None:
         st.error("Failed to initialize the application. Please check your configuration.")
         return
 
@@ -314,14 +313,29 @@ def main():
                 query = structured_query_template.format(**user_input)
                 
                 # Get response
-                response = qa_chain.invoke({"query": query})
+                docs = retriever.invoke(query)
+
+                if not docs:
+                    st.warning("⚠️ No relevant data found.")
+                    return
+
+                context = "\n\n".join([doc.page_content for doc in docs])
+
+                final_prompt = custom_prompt.format(
+                    context=context,
+                    question=query
+                )
+
+                response = llm.invoke(final_prompt)
+
+                st.markdown(response)
                 
                 # Display results
                 st.markdown('<h3 class="sub-header">🍽️ Your Personalized Meal Plan</h3>', unsafe_allow_html=True)
                 
                 # Display the meal plan
                 #st.markdown("### 🍽️ Meal Plan")
-                st.markdown(response["result"])
+                # st.markdown(response["result"])
                 
                 # Success message
                 st.success("✅ Meal plan generated successfully!")
