@@ -49,16 +49,17 @@ html, body, [class*="css"] {
     letter-spacing: -0.5px;
 }
 .hero p {
-    font-size: 1.05rem;
-    color: #7a5c45;
-    font-weight: 300;
+    font-size: 1.1rem;
+    color: #4a2b1a !important;
+    font-weight: 500 !important;
 }
 
 /* Section headers */
 .section-label {
     font-family: 'DM Serif Display', serif;
-    font-size: 1.25rem;
-    color: var(--terra);
+    font-size: 1.3rem;
+    color: #8b3f1f !important;
+    font-weight: 600;
     margin: 1.5rem 0 0.5rem;
     border-left: 4px solid var(--blush);
     padding-left: 0.6rem;
@@ -72,6 +73,48 @@ html, body, [class*="css"] {
     padding: 1.5rem 1.5rem 0.5rem;
     margin-bottom: 1.2rem;
     box-shadow: 0 2px 12px rgba(196,113,74,0.06);
+}
+
+/* 🌟 LIGHT YELLOW LABEL BADGES (FIXED VISIBILITY) */
+[data-testid="stWidgetLabel"] p,
+.stSelectbox label p,
+.stTextInput label p,
+.stTextArea label p {
+
+    background-color: #fff7cc !important;   /* light yellow */
+    color: #5c4b00 !important;              /* readable dark yellow-brown */
+
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+
+    padding: 6px 12px !important;
+    border-radius: 10px !important;
+
+    display: inline-block !important;
+    margin-bottom: 8px !important;
+
+    border: 1px solid #f4e08a !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+/* Dropdown selected value */
+div[data-baseweb="select"] span {
+    color: #1f140d !important;
+    font-weight: 500 !important;
+}
+
+/* Dropdown input area */
+div[data-baseweb="select"] > div {
+    background-color: #fffaf6 !important;
+    border: 1px solid #d6a48a !important;
+    border-radius: 10px !important;
+}
+
+/* Dropdown menu items */
+ul[role="listbox"] li {
+    color: #2d1a0e !important;
+}
+ul[role="listbox"] li:hover {
+    background-color: #fde8dc !important;
 }
 
 /* Generate button */
@@ -114,6 +157,12 @@ div.stButton > button:hover { opacity: 0.88 !important; }
 }
 
 /* Sources */
+.source-title {
+    margin-top: 1.5rem;
+    font-weight: 600;
+    color: #6b3a20;
+    font-size: 1.05rem;
+}
 .source-tag {
     display: inline-block;
     background: var(--sage-light);
@@ -122,28 +171,6 @@ div.stButton > button:hover { opacity: 0.88 !important; }
     padding: 0.2rem 0.8rem;
     font-size: 0.78rem;
     margin: 0.2rem;
-}
-
-/* Streamlit widget overrides */
-.stSelectbox label, .stTextInput label, .stTextArea label, .stSlider label,
-p, label, .stMarkdown p {
-    font-weight: 500 !important;
-    color: #2d1a0e !important;
-    opacity: 1 !important;
-}
-/* Force all label elements to full opacity */
-[data-testid="stWidgetLabel"] p,
-[data-testid="stWidgetLabel"] span,
-.stSelectbox label p,
-.stTextInput label p,
-.stTextArea label p {
-    color: #2d1a0e !important;
-    opacity: 1 !important;
-    font-weight: 500 !important;
-}
-.stSelectbox > div > div {
-    border-radius: 10px !important;
-    border-color: #eeddd0 !important;
 }
 
 /* Hide Streamlit branding */
@@ -159,7 +186,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ─── Load models (cached) ───────────────────────────────────────────────────
+# ─── Load resources (cached) ────────────────────────────────────────────────
 @st.cache_resource(show_spinner="Loading nutrition knowledge base…")
 def load_resources():
     embedding_model = HuggingFaceEmbeddings(
@@ -175,13 +202,21 @@ def load_resources():
 
 db, groq_client = load_resources()
 
-# ─── Prompts (inline so app.py is self-contained) ───────────────────────────
+# ─── Prompts ────────────────────────────────────────────────────────────────
 CUSTOM_PROMPT_TEMPLATE = """
 Using ONLY the context provided, generate a structured meal plan covering Breakfast, Lunch, and Dinner that meets the user's requirements exactly.
-- Include at least 5 food items per meal.
-- Do NOT add any additional commentary or sections—return nothing but the meal plan.
 
----
+Rules:
+- Include at least 5 food items per meal.
+- Also include total macros for each meal:
+  - Calories
+  - Protein (g)
+  - Carbohydrates (g)
+  - Fats (g)
+- Do NOT add extra commentary outside the meal plan.
+- If exact macro values are uncertain, estimate them using standard serving sizes.
+
+--- 
 📘 CONTEXT:
 {context}
 ---
@@ -189,8 +224,7 @@ Using ONLY the context provided, generate a structured meal plan covering Breakf
 🤰 USER QUERY:
 {question}
 
-💡 YOUR RESPONSE (Follow these rules strictly):
-MEAL PLAN FORMAT:
+💡 YOUR RESPONSE FORMAT:
 
 Breakfast:
 - Food item 1: portion
@@ -199,12 +233,24 @@ Breakfast:
 - Food item 4: portion
 - Food item 5: portion
 
+Breakfast Macros:
+- Calories: ___ kcal
+- Protein: ___ g
+- Carbohydrates: ___ g
+- Fats: ___ g
+
 Lunch:
 - Food item 1: portion
 - Food item 2: portion
 - Food item 3: portion
 - Food item 4: portion
 - Food item 5: portion
+
+Lunch Macros:
+- Calories: ___ kcal
+- Protein: ___ g
+- Carbohydrates: ___ g
+- Fats: ___ g
 
 Dinner:
 - Food item 1: portion
@@ -213,7 +259,14 @@ Dinner:
 - Food item 4: portion
 - Food item 5: portion
 
-- Highlight safety precautions such as foods to avoid or hygiene practices.
+Dinner Macros:
+- Calories: ___ kcal
+- Protein: ___ g
+- Carbohydrates: ___ g
+- Fats: ___ g
+
+Safety Notes:
+- Mention 2–4 short precautions such as foods to avoid or hygiene practices.
 """
 
 custom_prompt = PromptTemplate(
@@ -228,7 +281,8 @@ QUERY_TEMPLATE = """Generate a personalized meal plan for a pregnant woman with 
 - Key nutrient focus: {nutrient_focus}
 - Cultural preference: {cultural_preference}
 - Personal preferences or dislikes: {preference}
-- Medical conditions: {medical_conditions}"""
+- Medical conditions: {medical_conditions}
+"""
 
 # ─── Groq caller ────────────────────────────────────────────────────────────
 def call_groq(prompt: str) -> str:
@@ -236,7 +290,7 @@ def call_groq(prompt: str) -> str:
         model="meta-llama/llama-4-scout-17b-16e-instruct",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.6,
-        max_tokens=1500,
+        max_tokens=1800,
         top_p=1,
     )
     return completion.choices[0].message.content
@@ -337,7 +391,10 @@ if generate:
 
     # ── Sources ──
     if docs:
-        st.markdown("<br>**📚 Sources used from knowledge base:**", unsafe_allow_html=True)
+        st.markdown("""
+        <div class="source-title">📚 Sources used from knowledge base:</div>
+        """, unsafe_allow_html=True)
+
         source_html = ""
         seen = set()
         for doc in docs:
@@ -348,4 +405,15 @@ if generate:
                 source_html += f'<span class="source-tag">📄 {short}</span>'
         st.markdown(source_html, unsafe_allow_html=True)
 
-    st.success("Meal plan generated! Always consult your doctor or dietitian before making dietary changes.")
+    st.markdown("""
+    <div style="
+        background:#fff7cc;
+        border:1px solid #f4e08a;
+        padding:12px 16px;
+        border-radius:10px;
+        color:#6b5a00;
+        font-weight:500;
+        margin-top:14px;">
+        ⚠️ Meal plan generated! Always consult your doctor or dietitian before making dietary changes.
+    </div>
+    """, unsafe_allow_html=True)
